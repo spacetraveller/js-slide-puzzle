@@ -13,6 +13,8 @@ export default class PuzzleManager {
   solvedPieces = 0;
   config;
   boundsContainers;
+  timeStart;
+  timeEnd;
 
   constructor(config) {
     if (!createjs)
@@ -51,6 +53,28 @@ export default class PuzzleManager {
 
     this.sliceMap(loadQueue.getResult("main"));
     this.addSlicesToStage();
+
+    if (loadQueue.getResult("background")) {
+      //alert("Background detected.");
+      let bg = new createjs.Container();
+      bg.addChild(new createjs.Bitmap(loadQueue.getResult("background")));
+      this.stage.addChildAt(bg, 0);
+    }
+  }
+  startPuzzle() {
+    const { containers } = this;
+    for (let i = 0; i < containers.length; i++) {
+      containers[i].addEventListener("mousedown", (evt) => {
+        this.handleSelectPiece(evt);
+      });
+      containers[i].addEventListener("pressmove", (evt) => {
+        this.handlePressMove(evt);
+      });
+      containers[i].addEventListener("pressup", (evt) => {
+        this.handleDeselect(evt);
+      });
+    }
+    this.timeStart = new Date();
   }
   handleSelectPiece(evt) {
     let { stage, selectOffset } = this;
@@ -94,7 +118,7 @@ export default class PuzzleManager {
 
   handleDeselect(evt) {
     let { dimensionPiece } = this;
-    const { piecesPerRow: pieces } = this.config;
+    const { piecesPerRow: pieces, onSolvePiece } = this.config;
 
     this.moveGrossCount++;
 
@@ -115,8 +139,13 @@ export default class PuzzleManager {
       if (pieceIndex === evt.currentTarget.myIndex) {
         //!!!Solved a piece!!!
         console.log("Total solved pieces", this.solvedPieces);
+        onSolvePiece();
       }
     }
+  }
+  getTimeTaken() {
+    this.timeEnd = new Date();
+    return this.timeEnd - this.timeStart;
   }
   checkSolved() {
     const { containers, dimensionPiece } = this;
@@ -131,18 +160,24 @@ export default class PuzzleManager {
       }
     }
     if (this.solvedPieces === Math.pow(pieces, 2) - 1) {
-      console.log(
-        "Completed the game!!!! Completed in " +
-          this.moveGrossCount +
-          " movements & " +
-          this.moveCount +
-          " moves!!"
-      );
-      for (let i = 0; i < containers.length; i++) {
-        containers[i].removeAllEventListeners();
-      }
-      // completed game logic trigger here.
     }
+  }
+  onSolvePuzzle() {
+    const { onSolvePuzzle } = this.config;
+
+    console.log(
+      "Completed the game!!!! Completed in " +
+        this.moveGrossCount +
+        " movements & " +
+        this.moveCount +
+        " moves!!",
+      "Solved in " + this.getTimeTaken() + "ms"
+    );
+    for (let i = 0; i < containers.length; i++) {
+      containers[i].removeAllEventListeners();
+    }
+    // completed game logic trigger.
+    if (onSolvePuzzle) onSolvePuzzle();
   }
   calculateDragBounds(targetClip) {
     // draw intersection checker.
@@ -187,19 +222,15 @@ export default class PuzzleManager {
             scopeX.x < containers[i].x + dimensionPiece[0]
           ) {
             // LHS
-            //console.log("Run LHS with " + containers[i].startIndex, scopeX);
             scopeX.width =
               scopeX.width - (containers[i].x + dimensionPiece[0] - scopeX.x);
             scopeX.x = containers[i].x + dimensionPiece[0];
-            //console.log("Trimmed LHS " + scopeX);
           } else if (
             scopeX.x + scopeX.width > containers[i].x &&
             scopeX.x < containers[i].x
           ) {
             // RHS
-            //console.log("Run RHS with " + containers[i].startIndex, scopeX);
             scopeX.width = containers[i].x - scopeX.x;
-            //console.log("Trimmed RHS " + scopeX);
           }
         }
       }
@@ -255,6 +286,7 @@ export default class PuzzleManager {
       reordering,
       debug,
       puzzleOffset,
+      onLoad,
     } = this.config;
     const {
       containers,
@@ -270,7 +302,7 @@ export default class PuzzleManager {
 
     let border = new Graphics();
     border.setStrokeStyle(1);
-    border.beginStroke("#999999");
+    border.beginStroke("#333333");
 
     border.drawRect(0, 0, dimensionPiece[0], dimensionPiece[1]);
     for (let y = 0; y < pieces; y++) {
@@ -291,7 +323,8 @@ export default class PuzzleManager {
             containers[containers.length - 1].myIndex = index;
 
             puzzleContainer.addChild(pc);
-            pc.addEventListener("mousedown", (evt) => {
+
+            /*pc.addEventListener("mousedown", (evt) => {
               this.handleSelectPiece(evt);
             });
             pc.addEventListener("pressmove", (evt) => {
@@ -299,7 +332,7 @@ export default class PuzzleManager {
             });
             pc.addEventListener("pressup", (evt) => {
               this.handleDeselect(evt);
-            });
+            });*/
           }
         }
       }
@@ -319,9 +352,20 @@ export default class PuzzleManager {
         }
       }
     }
+
+    if (onLoad) {
+      onLoad();
+    } else {
+      this.startPuzzle();
+    }
   }
   loadAssets() {
-    this.loadQueue.loadManifest([{ id: "main", src: this.config.targetImage }]);
+    const { targetImage, backgroundImage } = this.config;
+    let manifest = [{ id: "main", src: targetImage }];
+    if (backgroundImage)
+      manifest.push({ id: "background", src: backgroundImage });
+
+    this.loadQueue.loadManifest(manifest);
     this.loadQueue.on("complete", this.handleLoadComplete, this);
   }
   handleLoadComplete() {

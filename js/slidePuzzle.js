@@ -6,12 +6,21 @@ const config = {
   piecesPerRow: 4,
   framerate: 60,
   targetImage: "./img/samoa.png",
+  backgroundImage: "./img/background.png",
   homePosition: 12,
-  puzzleOffset: [50, 50],
+  puzzleOffset: [26, 123],
+  onLoad: onPuzzleLoad,
+  onSolvePiece: null,
+  onSolvePuzzle: onSolvePuzzle,
 };
+let puzzle;
 
 import PuzzleManager from "./puzzleManager";
 
 window.onload = function () {
-  let puzzle = new PuzzleManager(config);
+  puzzle = new PuzzleManager(config);
 };
+function onPuzzleLoad() {
+  puzzle.startPuzzle();
+}
+function onSolvePuzzle() {}
