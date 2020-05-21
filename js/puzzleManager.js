@@ -139,7 +139,7 @@ export default class PuzzleManager {
       if (pieceIndex === evt.currentTarget.myIndex) {
         //!!!Solved a piece!!!
         console.log("Total solved pieces", this.solvedPieces);
-        onSolvePiece();
+        if (onSolvePiece) onSolvePiece();
       }
     }
   }
