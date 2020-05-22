@@ -1,3 +1,12 @@
+/*
+js-slide puzzle with createJS
+Version: 0.1.2
+Author: D. Hersch
+http://twitter.com/marsoups
+Licensed under the MIT License
+Copyright (c) 2020
+*/
+
 export default class PuzzleManager {
   constructor(config) {
     if (!createjs)
@@ -53,7 +62,6 @@ export default class PuzzleManager {
     this.addSlicesToStage();
 
     if (loadQueue.getResult("background")) {
-      //alert("Background detected.");
       let bg = new createjs.Container();
       bg.addChild(new createjs.Bitmap(loadQueue.getResult("background")));
       this.stage.addChildAt(bg, 0);
@@ -135,7 +143,7 @@ export default class PuzzleManager {
         Math.floor(evt.currentTarget.y / dimensionPiece[1]) * pieces +
         Math.floor(evt.currentTarget.x / dimensionPiece[0]);
       if (pieceIndex === evt.currentTarget.myIndex) {
-        //!!!Solved a piece!!!
+        // Solved a piece!!
         console.log("Total solved pieces", this.solvedPieces);
         if (onSolvePiece) onSolvePiece();
       }
@@ -236,12 +244,10 @@ export default class PuzzleManager {
 
     // if container goes over the edge, trim.
     if (scopeX.x + scopeX.width > dimensionStage[0]) {
-      console.log("Dimension stage X adjustment");
       scopeX.width =
         scopeX.width - (scopeX.x + scopeX.width - dimensionStage[0]);
     }
     if (scopeY.y + scopeY.height > dimensionStage[1]) {
-      console.log("Dimension stage Y adjustment");
       scopeY.height =
         scopeY.height - (scopeY.y + scopeY.height - dimensionStage[1]);
     }
@@ -321,16 +327,6 @@ export default class PuzzleManager {
             containers[containers.length - 1].myIndex = index;
 
             puzzleContainer.addChild(pc);
-
-            /*pc.addEventListener("mousedown", (evt) => {
-              this.handleSelectPiece(evt);
-            });
-            pc.addEventListener("pressmove", (evt) => {
-              this.handlePressMove(evt);
-            });
-            pc.addEventListener("pressup", (evt) => {
-              this.handleDeselect(evt);
-            });*/
           }
         }
       }
