@@ -180,8 +180,8 @@ export default class PuzzleManager {
         " moves!!",
       "Solved in " + this.getTimeTaken() + "ms"
     );
-    for (let i = 0; i < containers.length; i++) {
-      containers[i].removeAllEventListeners();
+    for (let i = 0; i < this.containers.length; i++) {
+      this.containers[i].removeAllEventListeners();
     }
     // completed game logic trigger.
     if (onSolvePuzzle) onSolvePuzzle();
