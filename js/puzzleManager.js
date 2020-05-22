@@ -1,31 +1,29 @@
 export default class PuzzleManager {
-  stage;
-  loadQueue = new createjs.LoadQueue();
-  puzzleContainer = new createjs.Container();
-  debugContainer = new createjs.Container();
-  imageMap = [];
-  containers = [];
-  dimensionPiece = [];
-  dimensionStage = [0, 0];
-  selectOffset = [0, 0];
-  moveCount = 0;
-  moveGrossCount = 0;
-  solvedPieces = 0;
-  config;
-  boundsContainers;
-  timeStart;
-  timeEnd;
-
   constructor(config) {
     if (!createjs)
       return alert("Create JS Library not detected. Please install!");
     if (!createjs.BitmapData)
       return alert("Create JS plugin BitmapData not detected. Please install!");
+
+    this.loadQueue = new createjs.LoadQueue();
+    this.puzzleContainer = new createjs.Container();
+    this.debugContainer = new createjs.Container();
+    this.imageMap = [];
+    this.containers = [];
+    this.dimensionPiece = [];
+    this.dimensionStage = [0, 0];
+    this.selectOffset = [0, 0];
+    this.moveCount = 0;
+    this.moveGrossCount = 0;
+    this.solvedPieces = 0;
     this.config = config;
+    this.boundsContainers;
+    this.timeStart;
+    this.timeEnd;
+
     this.stage = new createjs.Stage(config.canvasTargetId);
     this.loadAssets();
   }
-
   initPuzzle() {
     const { reordering, framerate, homePosition } = this.config;
     const { stage, loadQueue } = this;
