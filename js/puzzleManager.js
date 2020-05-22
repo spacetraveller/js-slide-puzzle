@@ -166,6 +166,7 @@ export default class PuzzleManager {
       }
     }
     if (this.solvedPieces === Math.pow(pieces, 2) - 1) {
+      this.onSolvePuzzle();
     }
   }
   onSolvePuzzle() {
