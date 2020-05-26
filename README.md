@@ -7,6 +7,7 @@ Example provided in the index.html file with a sample image.
 Sample background image contains edited wood texture, courtesy of http://www.freepik.com
 
 ```javascript
+import PuzzleManager from "./puzzleManager";
 const config = {
   canvasTargetId: "puzzleGameCanvas",
   //reordering: [],
@@ -22,6 +23,10 @@ const config = {
   onSolvePiece: null,
   onSolvePuzzle: onSolvePuzzle,
 };
+
+window.onload = function () {
+  puzzle = new PuzzleManager(config);
+  }
 ```
 
 An empty "reordering" array with "debug" turned off, will result in a random tile configuration. However, there is the chance that there will be no solution to this random layout. Needs work to determine if the random solution solves and if not, to either repair or attempt to randomize again, until such time as a working random layout presents itself.
