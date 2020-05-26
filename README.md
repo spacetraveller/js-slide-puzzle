@@ -14,7 +14,7 @@ const config = {
   reordering: [13, 1, 9, 2, 0, 11, 7, 3, 4, 14, 8, 5, 12, 15, 10, 6], //
   debug: false,
   piecesPerRow: 4,
-  framerate: 60,
+  framerate: 25,
   targetImage: "./img/samoa.png",
   backgroundImage: "./img/background.png",
   homePosition: 12,
