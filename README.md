@@ -26,7 +26,7 @@ const config = {
 
 window.onload = function () {
   puzzle = new PuzzleManager(config);
-  }
+}
 ```
 
 An empty "reordering" array with "debug" turned off, will result in a random tile configuration. However, there is the chance that there will be no solution to this random layout. Needs work to determine if the random solution solves and if not, to either repair or attempt to randomize again, until such time as a working random layout presents itself.
