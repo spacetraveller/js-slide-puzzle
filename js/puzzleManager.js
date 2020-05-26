@@ -34,7 +34,13 @@ export default class PuzzleManager {
     this.loadAssets();
   }
   initPuzzle() {
-    const { reordering, framerate, homePosition } = this.config;
+    const {
+      reordering,
+      framerate,
+      homePosition,
+      debug,
+      piecesPerRow,
+    } = this.config;
     const { stage, loadQueue } = this;
     console.log(
       "IMAGE SIZE : ",
@@ -49,6 +55,27 @@ export default class PuzzleManager {
       stage.update();
     });
 
+    // check for randomization
+    if (reordering && reordering.length === 0 && !debug) {
+      let randomProvider = [];
+      for (let i = 0; i < Math.pow(piecesPerRow, 2); i++) {
+        if (i !== homePosition) randomProvider.push(i);
+      }
+      while (randomProvider.length > 0) {
+        let newVal = randomProvider.splice(
+          Math.floor(Math.random() * randomProvider.length),
+          1
+        );
+        reordering.push(newVal[0]);
+      }
+      reordering.splice(homePosition, 0, homePosition);
+
+      // TODO: Verify solvability based on forumla.
+      // https://www.cs.bham.ac.uk/~mdr/teaching/modules04/java2/TilesSolvability.html
+      console.log(
+        "Caution: This puzzle may be unsolvable. Error handling not yet available"
+      );
+    }
     // fix reordering list
     if (reordering && reordering.length > 0) {
       let fixIndex = reordering[homePosition];
@@ -57,6 +84,7 @@ export default class PuzzleManager {
         if (reordering[i] > fixIndex) reordering[i] -= 1;
       }
     }
+    console.log("After adjust : ", reordering);
 
     this.sliceMap(loadQueue.getResult("main"));
     this.addSlicesToStage();
