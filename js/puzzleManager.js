@@ -34,13 +34,7 @@ export default class PuzzleManager {
     this.loadAssets();
   }
   initPuzzle() {
-    const {
-      reordering,
-      framerate,
-      homePosition,
-      debug,
-      piecesPerRow,
-    } = this.config;
+    const { framerate, homePosition, debug, piecesPerRow } = this.config;
     const { stage, loadQueue } = this;
     console.log(
       "IMAGE SIZE : ",
@@ -55,36 +49,38 @@ export default class PuzzleManager {
       stage.update();
     });
 
-    // check for randomization
-    if (reordering && reordering.length === 0 && !debug) {
-      let randomProvider = [];
-      for (let i = 0; i < Math.pow(piecesPerRow, 2); i++) {
-        if (i !== homePosition) randomProvider.push(i);
+    // check for randomization requirement
+    if (
+      this.config.reordering &&
+      this.config.reordering.length === 0 &&
+      !debug
+    ) {
+      this.generateRandomPositions();
+      while (!this.verifyIsSolvable()) {
+        console.log("Generated a non solvable puzzle");
+        this.generateRandomPositions();
       }
-      while (randomProvider.length > 0) {
-        let newVal = randomProvider.splice(
-          Math.floor(Math.random() * randomProvider.length),
-          1
-        );
-        reordering.push(newVal[0]);
-      }
-      reordering.splice(homePosition, 0, homePosition);
+    }
 
-      // TODO: Verify solvability based on forumla.
-      // https://www.cs.bham.ac.uk/~mdr/teaching/modules04/java2/TilesSolvability.html
-      console.log(
-        "Caution: This puzzle may be unsolvable. Error handling not yet available"
-      );
-    }
     // fix reordering list
-    if (reordering && reordering.length > 0) {
-      let fixIndex = reordering[homePosition];
-      reordering[homePosition] = -1;
-      for (let i = 0; i < reordering.length; i++) {
-        if (reordering[i] > fixIndex) reordering[i] -= 1;
+    if (this.config.reordering && this.config.reordering.length > 0) {
+      let fixIndex = this.config.reordering[homePosition];
+      if (fixIndex === -1) {
+        // run routine to determine which value is missing.
+        let total = Math.pow(piecesPerRow, 2);
+        for (let i = 0; i < total; i++) {
+          if (this.config.reordering.indexOf(i) === -1) {
+            fixIndex = i;
+            break;
+          }
+        }
+      }
+      this.config.reordering[homePosition] = -1;
+      for (let i = 0; i < this.config.reordering.length; i++) {
+        if (this.config.reordering[i] > fixIndex)
+          this.config.reordering[i] -= 1;
       }
     }
-    console.log("After adjust : ", reordering);
 
     this.sliceMap(loadQueue.getResult("main"));
     this.addSlicesToStage();
@@ -94,6 +90,60 @@ export default class PuzzleManager {
       bg.addChild(new createjs.Bitmap(loadQueue.getResult("background")));
       this.stage.addChildAt(bg, 0);
     }
+  }
+  generateRandomPositions() {
+    const { homePosition, piecesPerRow } = this.config;
+    this.config.reordering = [];
+    let randomProvider = [];
+    for (let i = 0; i < Math.pow(piecesPerRow, 2); i++) {
+      if (i !== homePosition) randomProvider.push(i);
+    }
+    while (randomProvider.length > 0) {
+      let newVal = randomProvider.splice(
+        Math.floor(Math.random() * randomProvider.length),
+        1
+      );
+      this.config.reordering.push(newVal[0]);
+    }
+    this.config.reordering.splice(homePosition, 0, homePosition);
+  }
+  verifyIsSolvable() {
+    // Verify solvability based on forumla.
+    // https://www.cs.bham.ac.uk/~mdr/teaching/modules04/java2/TilesSolvability.html
+    const { reordering, piecesPerRow, homePosition } = this.config;
+    // Calculate inversions.
+    let totalInversions = 0;
+    for (let i = 0; i < reordering.length; i++) {
+      let indexCt = 0;
+      for (let j = i + 1; j < reordering.length; j++) {
+        if (reordering[j] > -1) {
+          if (reordering[i] > reordering[j]) totalInversions++;
+          if (reordering[i] > reordering[j]) indexCt++;
+        }
+      }
+    }
+    let homeRowFromBottom =
+      Math.floor(
+        (Math.pow(piecesPerRow, 2) - homePosition - 1) / piecesPerRow
+      ) + 1;
+
+    if (!this.isEven(piecesPerRow) && this.isEven(totalInversions)) return true;
+    if (this.isEven(piecesPerRow)) {
+      let homeRowFromBottom =
+        Math.floor(
+          (Math.pow(piecesPerRow, 2) - homePosition - 1) / piecesPerRow
+        ) + 1;
+      if (this.isEven(homeRowFromBottom) && !this.isEven(totalInversions))
+        return true;
+      if (!this.isEven(homeRowFromBottom) && this.isEven(totalInversions))
+        return true;
+    }
+    return false;
+  }
+
+  isEven(num) {
+    if (Math.floor(num / 2) === num / 2) return true;
+    return false;
   }
   startPuzzle() {
     const { containers } = this;
@@ -355,6 +405,11 @@ export default class PuzzleManager {
             containers.push(pc);
             containers[containers.length - 1].myIndex = index;
 
+            if (debug)
+              pc.addChild(
+                new createjs.Text("#" + index, "24px Arial", "#ff2222")
+              );
+
             puzzleContainer.addChild(pc);
           }
         }
@@ -368,10 +423,6 @@ export default class PuzzleManager {
           containers[reordering[i]].y =
             Math.floor(i / pieces) * dimensionPiece[1];
           containers[reordering[i]].startIndex = i;
-          if (debug)
-            containers[reordering[i]].addChild(
-              new createjs.Text("#" + i, "24px Arial", "#ff2222")
-            );
         }
       }
     }
@@ -401,7 +452,7 @@ export default class PuzzleManager {
     let positionDebug = new Graphics();
     positionDebug.setStrokeStyle(1);
     positionDebug.beginStroke("#CCCCCC");
-    positionDebug.beginFill("#AA330060");
+    positionDebug.beginFill("#AA330020");
     positionDebug.drawRect(
       boundsContainers[1].x,
       boundsContainers[1].y,

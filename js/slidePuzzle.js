@@ -1,7 +1,7 @@
 const config = {
   canvasTargetId: "puzzleGameCanvas",
-  //reordering: [],
-  reordering: [13, 1, 9, 2, 0, 11, 7, 3, 4, 14, 8, 5, 12, 15, 10, 6], //
+  reordering: [],
+  //reordering: [13, 1, 9, 2, 0, 11, 7, 3, 4, 14, 8, 5, 12, 15, 10, 6], //
   debug: false,
   piecesPerRow: 4,
   framerate: 25,
