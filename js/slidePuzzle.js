@@ -15,7 +15,7 @@ const config = {
 };
 let puzzle;
 
-import PuzzleManager from "./puzzleManager";
+import PuzzleManager from "./puzzleManager.min";
 
 window.onload = function () {
   puzzle = new PuzzleManager(config);
