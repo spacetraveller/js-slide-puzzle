@@ -205,7 +205,6 @@ export default class PuzzleManager {
     const { piecesPerRow: pieces, onSolvePiece } = this.config;
 
     this.moveGrossCount++;
-
     if (
       evt.currentTarget.x % dimensionPiece[0] < 2 &&
       evt.currentTarget.y % dimensionPiece[1] < 2
@@ -215,6 +214,9 @@ export default class PuzzleManager {
       evt.currentTarget.y =
         dimensionPiece[1] * Math.floor(evt.currentTarget.y / dimensionPiece[1]);
       this.moveCount++;
+
+      if (evt.currentTarget.x < 0) evt.currentTarget.x = 0;
+      if (evt.currentTarget.y < 0) evt.currentTarget.y = 0;
 
       this.checkSolved();
       let pieceIndex =
