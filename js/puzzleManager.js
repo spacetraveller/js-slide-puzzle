@@ -239,8 +239,8 @@ export default class PuzzleManager {
     this.solvedPieces = 0;
     for (let i = 0; i < containers.length; i++) {
       let pieceIndex =
-        Math.floor(containers[i].y / dimensionPiece[1]) * pieces +
-        Math.floor(containers[i].x / dimensionPiece[0]);
+        Math.round(containers[i].y / dimensionPiece[1]) * pieces +
+        Math.round(containers[i].x / dimensionPiece[0]);
       if (pieceIndex === containers[i].myIndex) {
         this.solvedPieces++;
       }
