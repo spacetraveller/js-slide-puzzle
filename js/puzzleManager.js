@@ -237,6 +237,9 @@ export default class PuzzleManager {
     const { containers, dimensionPiece } = this;
     const { piecesPerRow: pieces } = this.config;
     this.solvedPieces = 0;
+
+    if(this.config.outputRawPositions) this.outputRawPositions();
+
     for (let i = 0; i < containers.length; i++) {
       let pieceIndex =
         Math.round(containers[i].y / dimensionPiece[1]) * pieces +
@@ -248,6 +251,26 @@ export default class PuzzleManager {
     if (this.solvedPieces === Math.pow(pieces, 2) - 1) {
       this.onSolvePuzzle();
     }
+  }
+  outputRawPositions() {
+    const { containers, dimensionPiece } = this;
+    const { piecesPerRow: pieces } = this.config;
+
+    let pieceDisplayRaw = [];
+    for (let idx = 0; idx < pieces**2; idx++) {
+      let located = false;
+      for (let i = 0; i < containers.length; i++) {
+        let pieceIndex =
+            Math.round(containers[i].y / dimensionPiece[1]) * pieces +
+            Math.round(containers[i].x / dimensionPiece[0]);
+        if (pieceIndex === idx) {
+          pieceDisplayRaw.push(containers[i].myIndex);
+          located = true;
+        }
+      }
+      if(!located) pieceDisplayRaw.push(-1);
+    }
+    console.log(pieceDisplayRaw);
   }
   onSolvePuzzle() {
     const { onSolvePuzzle } = this.config;

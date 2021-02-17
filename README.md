@@ -13,6 +13,7 @@ const config = {
   //reordering: [],
   reordering: [13, 1, 9, 2, 0, 11, 7, 3, 4, 14, 8, 5, 12, 15, 10, 6], //
   debug: false,
+  outputRawPositions: false,
   piecesPerRow: 4,
   framerate: 25,
   targetImage: "./img/samoa.png",
@@ -29,6 +30,8 @@ window.onload = function () {
 };
 ```
 
-An empty "reordering" array with "debug" turned off, will result in a random tile configuration. However, there is the chance that there will be no solution to this random layout. Needs work to determine if the random solution solves and if not, to either repair or attempt to randomize again, until such time as a working random layout presents itself.
+An empty "reordering" array with "debug" turned off, will result in a random tile configuration. However, there is the chance that there will be no solution to this random layout. In order to handle that, there is a check that runs until a completable solution is discovered.
 
-Current version: 0.1.4
+Using the ouputRawPositions config, you can determine a replayable position that can be executed and copied into the reordering array. However, please note that currently, you must leave the "free" or "home" position in the home position as defined in the configuration when trying to assemble a puzzle. In other words, the home position in your preferred puzzle scramble, must be the empty piece, even though the other pieces are scrambled.
+
+Current version: 0.2.0
