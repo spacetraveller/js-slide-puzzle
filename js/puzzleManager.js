@@ -206,13 +206,13 @@ export default class PuzzleManager {
 
     this.moveGrossCount++;
     if (
-      evt.currentTarget.x % dimensionPiece[0] < 2 &&
-      evt.currentTarget.y % dimensionPiece[1] < 2
+      Math.floor(evt.currentTarget.x) % Math.floor(dimensionPiece[0]) < 2 &&
+      Math.floor(evt.currentTarget.y) % Math.floor(dimensionPiece[1]) < 2
     ) {
       evt.currentTarget.x =
-        dimensionPiece[0] * Math.floor(evt.currentTarget.x / dimensionPiece[0]);
+        dimensionPiece[0] * Math.floor(Math.floor(evt.currentTarget.x) / Math.floor(dimensionPiece[0]));
       evt.currentTarget.y =
-        dimensionPiece[1] * Math.floor(evt.currentTarget.y / dimensionPiece[1]);
+        dimensionPiece[1] * Math.floor(Math.floor(evt.currentTarget.y) / Math.floor(dimensionPiece[1]));
       this.moveCount++;
 
       if (evt.currentTarget.x < 0) evt.currentTarget.x = 0;
