@@ -34,15 +34,15 @@ export default class PuzzleManager {
     this.loadAssets();
   }
   initPuzzle() {
-    const { framerate, homePosition, debug, piecesPerRow } = this.config;
+    const { framerate, homePosition, debug, piecesPerRow, targetImageResize } = this.config;
     const { stage, loadQueue } = this;
     console.log(
       "IMAGE SIZE : ",
       loadQueue.getResult("main").width,
       loadQueue.getResult("main").height
     );
-    this.dimensionStage[0] = loadQueue.getResult("main").width;
-    this.dimensionStage[1] = loadQueue.getResult("main").height;
+    this.dimensionStage[0] = targetImageResize ? targetImageResize[0] : loadQueue.getResult("main").width;
+    this.dimensionStage[1] = targetImageResize ? targetImageResize[1] : loadQueue.getResult("main").height;
     createjs.Touch.enable(stage);
     createjs.Ticker.framerate = framerate;
     createjs.Ticker.addEventListener("tick", function () {
@@ -81,7 +81,6 @@ export default class PuzzleManager {
           this.config.reordering[i] -= 1;
       }
     }
-
     this.sliceMap(loadQueue.getResult("main"));
     this.addSlicesToStage();
 
@@ -163,8 +162,8 @@ export default class PuzzleManager {
   handleSelectPiece(evt) {
     let { stage, selectOffset } = this;
 
-    selectOffset[0] = evt.localX;
-    selectOffset[1] = evt.localY;
+    selectOffset[0] = evt.localX * evt.currentTarget.scaleX;
+    selectOffset[1] = evt.localY * evt.currentTarget.scaleY;
     stage.setChildIndex(evt.currentTarget, stage.numChildren - 1);
 
     // calculate intersections...
@@ -294,37 +293,27 @@ export default class PuzzleManager {
     const { debug } = this.config;
     const { Rectangle } = createjs;
     let { containers, dimensionPiece, dimensionStage } = this;
-    let scopeY = new Rectangle(
-      targetClip.x + 1,
-      0,
-      dimensionPiece[0] - 2,
-      dimensionStage[1]
-    );
+    
     let scopeX = new Rectangle(
       0,
       targetClip.y + 1,
       dimensionStage[0],
       dimensionPiece[1] - 2
     );
-    this.boundsContainers = [scopeX, scopeY];
+    let scopeY = new Rectangle(
+      targetClip.x + 1,
+      0,
+      dimensionPiece[0] - 2,
+      dimensionStage[1]
+    );
 
+    this.boundsContainers = [scopeX, scopeY];
+    console.log("TGT Bounds: ", targetClip.x, targetClip.y);
+    console.log("scope before", scopeX, scopeY);
     for (let i = 0; i < containers.length; i++) {
       if (containers[i] === targetClip) {
         // ignore.
       } else {
-        if (scopeY.intersects(containers[i].getTransformedBounds())) {
-          // evaluate intersection
-          if (
-            targetClip.y > containers[i].y &&
-            scopeY.y < containers[i].y + dimensionPiece[1]
-          ) {
-            scopeY.height =
-              scopeY.height - (containers[i].y + dimensionPiece[1] - scopeY.y);
-            scopeY.y = containers[i].y + dimensionPiece[1];
-          } else if (scopeY.y + scopeY.height > containers[i].y) {
-            scopeY.height = containers[i].y - scopeY.y;
-          }
-        }
         if (scopeX.intersects(containers[i].getTransformedBounds())) {
           // evaluate intersection
           if (
@@ -343,6 +332,26 @@ export default class PuzzleManager {
             scopeX.width = containers[i].x - scopeX.x;
           }
         }
+        if (scopeY.intersects(containers[i].getTransformedBounds())) {
+          // evaluate Y intersection
+          if (
+            targetClip.y > containers[i].y &&
+            scopeY.y < containers[i].y + dimensionPiece[1]
+          ) {
+            scopeY.height =
+              scopeY.height - (containers[i].y + dimensionPiece[1] - scopeY.y);
+              console.log("Scope Height set : ", scopeY.height);
+            scopeY.y = containers[i].y + dimensionPiece[1];
+          } else if (
+              scopeY.y + scopeY.height > containers[i].y &&
+              scopeY.y < containers[i].y
+            ) {
+            console.log("scopeY.y", scopeY.y, "+scopeY.height",scopeY.height ,"> containers[i].y",containers[i].y);
+
+            scopeY.height = containers[i].y - scopeY.y;
+            console.log("Scope reset : ", scopeY.height);
+          }
+        }
       }
     }
 
@@ -352,10 +361,11 @@ export default class PuzzleManager {
         scopeX.width - (scopeX.x + scopeX.width - dimensionStage[0]);
     }
     if (scopeY.y + scopeY.height > dimensionStage[1]) {
+      console.log("ScopeY trim..");
       scopeY.height =
         scopeY.height - (scopeY.y + scopeY.height - dimensionStage[1]);
     }
-
+    console.log("scope after", scopeX, scopeY);
     if (debug) this.showDebugPositions();
   }
 
@@ -363,11 +373,13 @@ export default class PuzzleManager {
     // generate mapping.
     const { BitmapData, Rectangle, Bitmap } = createjs;
     const { dimensionPiece, imageMap } = this;
-    const { piecesPerRow: pieces, homePosition } = this.config;
+    const { piecesPerRow: pieces, homePosition, targetImageResize } = this.config;
 
     let pieceXSize = (dimensionPiece[0] = _htmlImg.width / pieces);
     let pieceYSize = (dimensionPiece[1] = _htmlImg.height / pieces);
 
+    console.log("Original dimensions:", dimensionPiece);
+    
     let tgtPoint = new createjs.Point();
 
     for (let y = 0; y < pieces; y++) {
@@ -395,6 +407,7 @@ export default class PuzzleManager {
       debug,
       puzzleOffset,
       onLoad,
+      targetImageResize,
     } = this.config;
     const {
       containers,
@@ -409,6 +422,11 @@ export default class PuzzleManager {
     puzzleContainer.y = puzzleOffset[1];
 
     let border = new Graphics();
+    let dimensionPieceResized = targetImageResize ? 
+      [(targetImageResize[0]/pieces), (targetImageResize[1]/pieces)]
+      : [dimensionPiece[0], dimensionPiece[1]];
+
+    //let dimensionPieceResized = [Math.round(targetImageResize[0]/pieces), Math.round(targetImageResize[1]/pieces)];
     border.setStrokeStyle(1);
     border.beginStroke("#333333");
 
@@ -422,8 +440,10 @@ export default class PuzzleManager {
           } else {
             let pc = new Container();
             pc.addChild(imageMap[index]);
-            pc.x = x * dimensionPiece[0];
-            pc.y = y * dimensionPiece[1];
+            pc.scaleX = dimensionPieceResized[0] / dimensionPiece[0];
+            pc.scaleY = dimensionPieceResized[1] / dimensionPiece[1];
+            pc.x = x * dimensionPieceResized[0];
+            pc.y = y * dimensionPieceResized[1];
 
             let g = new Shape(border);
             pc.addChild(g);
@@ -440,17 +460,23 @@ export default class PuzzleManager {
         }
       }
     }
+
     if (reordering && reordering.length > 0) {
       for (let i = 0; i < reordering.length; i++) {
         if (reordering[i] == -1) continue;
         else {
-          containers[reordering[i]].x = (i % pieces) * dimensionPiece[0];
+          containers[reordering[i]].x = (i % pieces) * dimensionPieceResized[0];
           containers[reordering[i]].y =
-            Math.floor(i / pieces) * dimensionPiece[1];
+            Math.floor(i / pieces) * dimensionPieceResized[1];
           containers[reordering[i]].startIndex = i;
         }
       }
     }
+
+    dimensionPiece[0] = dimensionPieceResized[0];
+    dimensionPiece[1] = dimensionPieceResized[1];
+
+    console.log("Dimension piece : ", dimensionPiece);
 
     if (onLoad) {
       onLoad();
@@ -477,7 +503,7 @@ export default class PuzzleManager {
     let positionDebug = new Graphics();
     positionDebug.setStrokeStyle(1);
     positionDebug.beginStroke("#CCCCCC");
-    positionDebug.beginFill("#AA330020");
+    positionDebug.beginFill("#AA330080");
     positionDebug.drawRect(
       boundsContainers[1].x,
       boundsContainers[1].y,
