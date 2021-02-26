@@ -308,8 +308,7 @@ export default class PuzzleManager {
     );
 
     this.boundsContainers = [scopeX, scopeY];
-    console.log("TGT Bounds: ", targetClip.x, targetClip.y);
-    console.log("scope before", scopeX, scopeY);
+
     for (let i = 0; i < containers.length; i++) {
       if (containers[i] === targetClip) {
         // ignore.
@@ -340,16 +339,12 @@ export default class PuzzleManager {
           ) {
             scopeY.height =
               scopeY.height - (containers[i].y + dimensionPiece[1] - scopeY.y);
-              console.log("Scope Height set : ", scopeY.height);
             scopeY.y = containers[i].y + dimensionPiece[1];
           } else if (
               scopeY.y + scopeY.height > containers[i].y &&
               scopeY.y < containers[i].y
             ) {
-            console.log("scopeY.y", scopeY.y, "+scopeY.height",scopeY.height ,"> containers[i].y",containers[i].y);
-
             scopeY.height = containers[i].y - scopeY.y;
-            console.log("Scope reset : ", scopeY.height);
           }
         }
       }
@@ -361,11 +356,9 @@ export default class PuzzleManager {
         scopeX.width - (scopeX.x + scopeX.width - dimensionStage[0]);
     }
     if (scopeY.y + scopeY.height > dimensionStage[1]) {
-      console.log("ScopeY trim..");
       scopeY.height =
         scopeY.height - (scopeY.y + scopeY.height - dimensionStage[1]);
     }
-    console.log("scope after", scopeX, scopeY);
     if (debug) this.showDebugPositions();
   }
 
@@ -377,8 +370,6 @@ export default class PuzzleManager {
 
     let pieceXSize = (dimensionPiece[0] = _htmlImg.width / pieces);
     let pieceYSize = (dimensionPiece[1] = _htmlImg.height / pieces);
-
-    console.log("Original dimensions:", dimensionPiece);
     
     let tgtPoint = new createjs.Point();
 
@@ -475,8 +466,6 @@ export default class PuzzleManager {
 
     dimensionPiece[0] = dimensionPieceResized[0];
     dimensionPiece[1] = dimensionPieceResized[1];
-
-    console.log("Dimension piece : ", dimensionPiece);
 
     if (onLoad) {
       onLoad();
