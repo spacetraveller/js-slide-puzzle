@@ -15,8 +15,9 @@ const config = {
   debug: false,
   outputRawPositions: false,
   piecesPerRow: 4,
-  framerate: 25,
+  framerate: 50,
   targetImage: "./img/samoa.png",
+  targetImageResize: [548,350], // resize the loaded puzzle image to this W,H
   backgroundImage: "./img/background.png",
   homePosition: 12,
   puzzleOffset: [26, 123],
